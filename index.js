@@ -26,6 +26,10 @@ cs.get = function (string) {
 			val = cs.get.hsl(string);
 			model = 'hsl';
 			break;
+		case 'hsv':
+			val = cs.get.hsv(string);
+			model = 'hsv';
+			break;
 		case 'hwb':
 			val = cs.get.hwb(string);
 			model = 'hwb';
@@ -153,6 +157,27 @@ cs.get.hsl = function (string) {
 	return null;
 };
 
+cs.get.hsv = function (string) {
+	if (!string) {
+		return null;
+	}
+
+	var hsv = /^hsva?\(\s*([+-]?(?:\d*\.)?\d+)(?:deg)?\s*,\s*([+-]?[\d\.]+)%\s*,\s*([+-]?[\d\.]+)%\s*(?:,\s*([+-]?[\d\.]+)\s*)?\)$/;
+	var match = string.match(hsv);
+
+	if (match) {
+		var alpha = parseFloat(match[4]);
+		var h = (parseFloat(match[1]) + 360) % 360;
+		var s = clamp(parseFloat(match[2]), 0, 100);
+		var v = clamp(parseFloat(match[3]), 0, 100);
+		var a = clamp(isNaN(alpha) ? 1 : alpha, 0, 1);
+
+		return [h, s, v, a];
+	}
+
+	return null;
+};
+
 cs.get.hwb = function (string) {
 	if (!string) {
 		return null;
@@ -212,6 +237,13 @@ cs.to.hsl = function () {
 	return hsla.length < 4 || hsla[3] === 1
 		? 'hsl(' + hsla[0] + ', ' + hsla[1] + '%, ' + hsla[2] + '%)'
 		: 'hsla(' + hsla[0] + ', ' + hsla[1] + '%, ' + hsla[2] + '%, ' + hsla[3] + ')';
+};
+
+cs.to.hsv = function () {
+	var hsva = swizzle(arguments);
+	return hsva.length < 4
+		? 'hsv(' + hsva[0] + ', ' + hsva[1] + '%, ' + hsva[2] + '%)'
+		: 'hsva(' + hsva[0] + ', ' + hsva[1] + '%, ' + hsva[2] + '%, ' + hsva[3] + ')';
 };
 
 // hwb is a bit different than rgb(a) & hsl(a) since there is no alpha specific syntax
